@@ -6,21 +6,16 @@ let windowHeight = window.innerHeight;
 let width = 20;
 let height = 20;
 
+let delay = 100;
+
 let xCount = Math.floor(windowWidth / width);
 let yCount = Math.floor(windowHeight / height);
 
 let cells = [];
 
-let run = true;
+let interval = false;
 
 init();
-
-if (run) {
-	window.setInterval(function () {
-		cycle();
-	}, 200);
-}
-
 
 
 function init() {
@@ -30,13 +25,115 @@ function init() {
 			cells.push(newCell);
 		}
 	}
+
+	document.addEventListener("keypress", handleKey);
+
+	container.addEventListener("click", function (event) {
+//		console.log("event", event);
+		let id = event.target.id.split("-");
+		if (id.length == 2) {
+//			console.log("id", id[0], id[1]);
+			let target = cells[parseInt(id[0]) + parseInt(id[1]) * xCount];
+//			console.log("target:", target);
+			target.state = !target.state;
+			render(target);
+		}
+		return;
+	});
+
+	start();
 }
+
+function handleKey(event) {
+	switch (event.key) {
+		case " ":
+			toggleRun();
+			break;
+		case "c":
+			clear();
+			break;
+		case "r":
+			randomize();
+			break;
+		case "+":
+			changeSpeed("+");
+			break;
+		case "-":
+			changeSpeed("-");
+			break;
+		case "#":
+			changeSpeed("#");
+			break;
+		default:
+			console.info("unknown key", event.key);
+	}
+}
+
+function start() {
+	if (interval) {
+		return;
+	}
+	interval = window.setInterval(cycle, delay);
+}
+
+function stop() {
+	if (!interval) {
+		return;
+	}
+	window.clearInterval(interval);
+	interval = false;
+}
+
+function toggleRun() {
+	if (interval) {
+		stop();
+	} else {
+		start();
+	}
+}
+
+function changeSpeed(key) {
+	stop();
+	if (key == "+") {
+		delay -= 10;
+		if (delay < 40) {
+			delay = 40;
+		}
+	} else if (key == "-") {
+		delay += 10;
+	} else if (key == "#") {
+		delay = 100;
+	}
+	start();
+}
+
+
+
+function clear() {
+	stop();
+
+	cells.forEach(function (cell) {
+		cell.state = false;
+		render(cell);
+	});
+}
+
+function randomize() {
+	cells.forEach(function (cell) {
+		cell.state = Math.random() > 0.5;
+		render(cell);
+	});
+}
+
+
 
 function cycle() {
 	cells.forEach(getNextState);
 	cells.forEach(updateState);
 	cells.forEach(render);
 }
+
+
 
 function Cell(x, y) {
 	this.x = x;
@@ -54,7 +151,7 @@ function Cell(x, y) {
 	element.style.width = width;
 	element.style.height = height;
 	element.id = this.id;
-
+	
 	if (this.state) {
 		element.classList.add("alive");
 	}
@@ -62,6 +159,8 @@ function Cell(x, y) {
 	this.element = element;
 	container.appendChild(this.element);
 }
+
+
 
 function getNextState(cell) {
 	let offsets = [-1, 0, 1];
