@@ -114,6 +114,7 @@ function clear() {
 
 	cells.forEach(function (cell) {
 		cell.state = false;
+		cell.age = 0;
 		render(cell);
 	});
 }
@@ -121,6 +122,7 @@ function clear() {
 function randomize() {
 	cells.forEach(function (cell) {
 		cell.state = Math.random() > 0.5;
+		cell.age = 0;
 		render(cell);
 	});
 }
@@ -138,6 +140,8 @@ function cycle() {
 function Cell(x, y) {
 	this.x = x;
 	this.y = y;
+	
+	this.age = 0;
 
 	this.id = this.x + "-" + this.y;
 
@@ -153,7 +157,8 @@ function Cell(x, y) {
 	element.id = this.id;
 	
 	if (this.state) {
-		element.classList.add("alive");
+		this.age = 1;
+//		element.classList.add("alive");
 	}
 
 	this.element = element;
@@ -171,7 +176,13 @@ function getNextState(cell) {
 			let x = cell.x + xOffset;
 			let y = cell.y + yOffset;
 
-			if (x >= 0 && x < xCount && y >= 0 && y < yCount && (xOffset != 0 || yOffset != 0)) {
+			if (x < 0) x += xCount;
+			if (y < 0) y += yCount;
+			
+			x %= xCount;
+			y %= yCount;
+
+			if (xOffset != 0 || yOffset != 0) {
 				if (cells[x + y * xCount].state) {
 					neighbors++;
 				}
@@ -180,6 +191,7 @@ function getNextState(cell) {
 	});
 
 	cell.nextState = applyRules(cell.state, neighbors);
+	cell.age = cell.nextState ? cell.age + 1 : 0;
 }
 
 function updateState(cell) {
@@ -188,9 +200,11 @@ function updateState(cell) {
 
 function render(cell) {
 	if (cell.state) {
-		cell.element.classList.add("alive");
+		cell.element.style.backgroundColor = "hsl(" + getColorFromAge(cell.age) + ", 100%, 50%)";
+//		cell.element.classList.add("alive");
 	} else {
-		cell.element.classList.remove("alive");
+		cell.element.style.backgroundColor = "hsl(0, 0%, 0%)";
+//		cell.element.classList.remove("alive");
 	}
 }
 
@@ -201,6 +215,12 @@ function applyRules(current, neighbors) {
 		return true;
 	}
 	return false;
+}
+
+function getColorFromAge(age) {
+	let result = 0;
+	result = 5 * age;
+	return result;
 }
 
 
