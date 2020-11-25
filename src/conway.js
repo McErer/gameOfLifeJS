@@ -19,6 +19,7 @@ init();
 
 
 function init() {
+	console.log("init. lol");
 	for (let y = 0; y < yCount; y++) {
 		for (let x = 0; x < xCount; x++) {
 			let newCell = new Cell(x, y);
